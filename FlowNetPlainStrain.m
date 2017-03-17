@@ -364,4 +364,14 @@ for i = ny-nu+1:ny
     end    
 end
 
+q1=0;
+
+for j=2:nx1-1
+    
+    q1 = q1 + abs(h(ny-nu-nw-1,j))-abs(h(ny-nu-nw-3,j));
+    
+end
+
+q = 0.5*(abs(h(ny-nu-nw-1,1))-abs(h(ny-nu-nw-3,1)))+q1+0.5*(abs(h(ny-nu-nw-1,nx1))-abs(h(ny-nu-nw-3,nx1)))
+
 h
