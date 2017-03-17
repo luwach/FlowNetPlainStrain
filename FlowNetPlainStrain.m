@@ -96,3 +96,272 @@ h(1:ny-nu-nw,nx)=linspace(pz+1,pz,ny-nu-nw);
 h(1,1:nx)=linspace(pz+1,pz+1,nx);
 
 h
+
+u_to_w = zeros(ny, nx);
+w_to_u = zeros(2, nx*ny);
+m = 0;
+
+for i = 1:ny
+    for j = 1:nx
+        if h(i,j) == -Inf
+            m=m+1;
+            u_to_w(i,j) = m;
+            w_to_u(:, m) = [i, j]';
+        end
+    end
+end
+
+%Matrix M building
+
+M0=zeros(m,m);
+M1=zeros(m,m);
+
+for m1=1:m
+    
+    c = w_to_u(:,m1);
+    
+    if h(c(1)-1,c(2)) < 10000 && h(c(1)-1,c(2)) > -10000
+    
+        M1(m1,m1)=-1;
+        
+    elseif h(c(1)-1,c(2)) == -Inf
+        
+        M1(m1,m1)=-1;
+        M0(m1, u_to_w(c(1)-1, c(2)))=1;
+        
+    end
+    
+    if h(c(1)+1,c(2)) < 10000 && h(c(1)+1,c(2)) > -10000
+    
+        M1(m1,m1)=M1(m1,m1)-1;
+      
+    elseif h(c(1)+1,c(2)) == -Inf
+        
+        M1(m1,m1)=M1(m1,m1)-1;
+        M0(m1, u_to_w(c(1)+1, c(2)))=1;
+        
+    end
+    
+    if h(c(1),c(2)-1) < 10000 && h(c(1),c(2)-1) > -10000
+    
+        M1(m1,m1)=M1(m1,m1)-1;
+       
+    elseif h(c(1),c(2)-1) == -Inf
+        
+        M1(m1,m1)=M1(m1,m1)-1;
+        M0(m1, u_to_w(c(1), c(2)-1))=1;
+        
+    end
+    
+    if h(c(1),c(2)+1) < 10000 && h(c(1),c(2)+1) > -10000
+    
+        M1(m1,m1)=M1(m1,m1)-1;
+        
+    elseif h(c(1),c(2)+1) == -Inf
+        
+        M1(m1,m1)=M1(m1,m1)-1;
+        M0(m1, u_to_w(c(1), c(2)+1))=1;
+        
+    end
+    
+end
+
+M=M0+M1;
+
+%Calculation of the h values
+
+%NaN changed to 0
+
+for i = ny-nw-nu+1:ny
+    for j = 1:nx1
+        
+        h(i,j)=0;
+        
+    end    
+end
+
+%Right nodes
+
+for i = ny-nw-nu+1:ny
+    for j = nx1+nk+1:nx
+        
+        h(i,j)=0;
+        
+    end    
+end
+
+%Center nodes
+
+for i = ny-nu+1:ny
+    for j = nx1+1:nx1+nk
+        
+        h(i,j)=0;
+        
+    end    
+end
+
+tol=1d-6;
+err=1;
+t = waitbar(0,'Please wait...');
+
+%Calculation of the matrix h
+
+while err > tol
+    
+    waitbar(tol/err)
+    
+    for m1=1:m
+    
+        c = w_to_u(:,m1);
+   
+        h(c(1), c(2))= -Inf;
+    
+    end
+
+    b=zeros(m,1);
+   
+    for m1=1:m
+    
+        c = w_to_u(:,m1);
+    
+        if h(c(1)-1,c(2)) < 10000 && h(c(1)-1,c(2)) > -10000
+    
+            b(m1,1)=-h(c(1)-1,c(2));
+        
+        end
+    
+        if h(c(1)+1,c(2)) < 10000 && h(c(1)+1,c(2)) > -10000
+    
+            b(m1,1)=b(m1,1)-h(c(1)+1,c(2));
+        
+        end
+    
+        if h(c(1),c(2)-1) < 10000 && h(c(1),c(2)-1) > -10000
+    
+            b(m1,1)=b(m1,1)-h(c(1),c(2)-1);
+        
+        end
+    
+        if h(c(1),c(2)+1) < 10000 && h(c(1),c(2)+1) > -10000
+
+            b(m1,1)=b(m1,1)-h(c(1),c(2)+1);
+        
+        end
+    
+    end
+   
+    u=M\b;
+
+    for m1=1:m
+    
+        c = w_to_u(:,m1);
+   
+        h(c(1), c(2))=u(m1,1);
+    
+    end
+
+    hkp1=h;
+   
+    %Boundary conditions
+
+    %Left boundary of the model
+    
+    for i = 2:ny-nu-nw-1
+        
+        hkp1(i,1) = 0.25*(h(i+1,1)+2*h(i,2)+h(i-1,1));
+        
+    end
+    
+    %Left corner
+    
+    hkp1(1,1) = 0.5*(h(2,1)+h(1,2));
+    
+    %Bottom boundary
+  
+    for j = 2:nx-1
+        
+        hkp1(1,j) = 0.25*(h(1,j-1)+h(1,j+1)+2*h(2,j));
+        
+    end
+    
+    %Right corner
+
+    hkp1(1,nx) = 0.5*(h(1,nx-1)+h(2,nx));
+    
+    %Right boundary of the model
+
+    for i = 2:ny-nu-nw-1
+        
+        hkp1(i,nx) = 0.25*(h(i+1,nx)+2*h(i,nx-1)+h(i-1,nx));
+        
+    end
+    
+    %Left inner wall of the caisson
+
+    for i = ny-hk-nu+2:ny-nu-1
+        
+        hkp1(i,nx1+1) = 0.25*(h(i+1,nx1+1)+h(i-1,nx1+1)+2*h(i,nx1+2));
+        
+    end
+    
+    %Right inner wall of the caisson
+    
+    for i = ny-hk-nu+2:ny-nu-1
+        
+        hkp1(i,nx1+nk) = 0.25*(h(i+1,nx1+nk)+h(i-1,nx1+nk)+2*h(i,nx1+nk-1));
+        
+    end
+    
+     %Left outer wall of the caisson
+    
+    for i = ny-nu-hk+2:ny-nu-nw-1
+        
+        hkp1(i,nx1) = 0.25*(h(i+1,nx1)+h(i-1,nx1)+2*h(i,nx1-1));
+    
+    end
+        
+    %Right outer wall of the caisson
+    
+    for i = ny-nu-hk+2:ny-nu-nw-1
+        
+        hkp1(i,nx1+nk+1) = 0.25*(h(i+1,nx1+nk+1)+h(i-1,nx1+nk+1)+2*h(i,nx1+nk+2));
+    
+    end
+    
+    err = sqrt(sum(sum((hkp1-h).^2)));
+    
+    h = hkp1;
+    
+end
+
+close(t)
+
+for i = ny-nw-nu+1:ny
+    for j = 1:nx1
+        
+        h(i,j)=NaN;
+        
+    end    
+end
+
+%Right nodes
+
+for i = ny-nw-nu+1:ny
+    for j = nx1+nk+1:nx
+        
+        h(i,j)=NaN;
+        
+    end    
+end
+
+%Center nodes
+
+for i = ny-nu+1:ny
+    for j = nx1+1:nx1+nk
+        
+        h(i,j)=NaN;
+        
+    end    
+end
+
+h
