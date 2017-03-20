@@ -375,3 +375,77 @@ end
 q = 0.5*(abs(h(ny-nu-nw-1,1))-abs(h(ny-nu-nw-3,1)))+q1+0.5*(abs(h(ny-nu-nw-1,nx1))-abs(h(ny-nu-nw-3,nx1)))
 
 h
+
+%Stream lines
+
+s=ones(ny,nx);
+
+for i = 1:ny
+    for j = 1:nx
+        
+        s(i,j)= -Inf;
+        
+    end    
+end
+
+%Left nodes
+
+for i = ny-nw-nu+1:ny
+    for j = 1:nx1
+        
+        s(i,j)=NaN;
+        
+    end    
+end
+
+%Right nodes
+
+for i = ny-nw-nu+1:ny
+    for j = nx1+nk+1:nx
+        
+        s(i,j)=NaN;
+        
+    end    
+end
+
+%Center nodes
+
+for i = ny-nu+1:ny
+    for j = nx1+1:nx1+nk
+        
+        s(i,j)=NaN;
+        
+    end    
+end
+
+%Pressure inside the caisson
+
+s(ny-nu,nx1+1:nx1+nk)=linspace(0,0,nk);
+
+s(1:ny-nu,nx1+(nk-1)/2+1)=linspace(q,q,ny-nu);
+
+%Pressure outside the caisson
+
+s(ny-nw-nu,1:nx1)=linspace(q,0,nx1);
+s(ny-nw-nu,nx1+nk+1:nx)=linspace(0,q,nx1);
+
+%Pressure on the inner boundary of the caisson
+
+s(ny-hk-nu+1:ny-nu,nx1+1)=linspace(0,0,hk);
+s(ny-hk-nu+1:ny-nu,nx1+nk)=linspace(0,0,hk);
+
+%Pressure on the outer boundary of the caisson
+
+s(ny-nu-hk+1:ny-nu-nw,nx1)=linspace(0,0,hk-nw);
+s(ny-nu-hk+1:ny-nu-nw,nx1+nk+1)=linspace(0,0,hk-nw);
+
+%Pressure on the outer boundary of the soil model
+
+s(1:ny-nu-nw,1)=linspace(q,q,ny-nu-nw);
+s(1:ny-nu-nw,nx)=linspace(q,q,ny-nu-nw);
+
+%Pressure on the bottom boundary
+
+s(1,1:nx)=linspace(q,q,nx);
+
+s
