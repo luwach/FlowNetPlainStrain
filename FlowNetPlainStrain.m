@@ -172,6 +172,8 @@ M=M0+M1;
 
 %NaN changed to 0
 
+%Left nodes
+
 for i = ny-nw-nu+1:ny
     for j = 1:nx1
         
@@ -202,7 +204,7 @@ end
 
 tol=1d-6;
 err=1;
-t = waitbar(0,'Please wait...');
+t = waitbar(0,'h is calculating...');
 
 %Calculation of the matrix h
 
@@ -447,5 +449,216 @@ s(1:ny-nu-nw,nx)=linspace(q,q,ny-nu-nw);
 %Pressure on the bottom boundary
 
 s(1,1:nx)=linspace(q,q,nx);
+
+s
+
+s(1,1:nx)=linspace(q,q,nx);
+
+v_to_z = zeros(ny, nx);
+z_to_v = zeros(2, nx*ny);
+n = 0;
+
+for i = 1:ny
+    for j = 1:nx
+        if s(i,j) == -Inf
+            n=n+1;
+            v_to_z(i,j) = n;
+            z_to_v(:, n) = [i, j]';
+        end
+    end
+end
+
+%Matrix N created
+
+N0=zeros(n,n);
+N1=zeros(n,n);
+
+for n1=1:n
+    
+    d = z_to_v(:,n1);
+    
+    if s(d(1)-1,d(2)) < 10000 && s(d(1)-1,d(2)) > -10000
+    
+        N1(n1,n1)=-1;
+        
+    elseif s(d(1)-1,d(2)) == -Inf
+        
+        N1(n1,n1)=-1;
+        N0(n1, v_to_z(d(1)-1, d(2)))=1;
+        
+    end
+    
+    if s(d(1)+1,d(2)) < 10000 && s(d(1)+1,d(2)) > -10000
+    
+        N1(n1,n1)=N1(n1,n1)-1;
+      
+    elseif s(d(1)+1,d(2)) == -Inf
+        
+        N1(n1,n1)=N1(n1,n1)-1;
+        N0(n1, v_to_z(d(1)+1, d(2)))=1;
+        
+    end
+    
+    if s(d(1),d(2)-1) < 10000 && s(d(1),d(2)-1) > -10000
+    
+        N1(n1,n1)=N1(n1,n1)-1;
+       
+    elseif s(d(1),d(2)-1) == -Inf
+        
+        N1(n1,n1)=N1(n1,n1)-1;
+        N0(n1, v_to_z(d(1), d(2)-1))=1;
+        
+    end
+    
+    if s(d(1),d(2)+1) < 10000 && s(d(1),d(2)+1) > -10000
+    
+        N1(n1,n1)=N1(n1,n1)-1;
+        
+    elseif s(d(1),d(2)+1) == -Inf
+        
+        N1(n1,n1)=N1(n1,n1)-1;
+        N0(n1, v_to_z(d(1), d(2)+1))=1;
+        
+    end
+    
+end
+
+N=N0+N1;
+
+%Calculation of the s values
+
+%NaN changed to 0
+
+%Left nodes
+
+for i = ny-nw-nu+1:ny
+    for j = 1:nx1
+        
+        s(i,j)=0;
+        
+    end    
+end
+
+%Center nodes
+
+for i = ny-nw-nu+1:ny
+    for j = nx1+nk+1:nx
+        
+        s(i,j)=0;
+        
+    end    
+end
+
+%Right nodes
+
+for i = ny-nu+1:ny
+    for j = nx1+1:nx1+nk
+        
+        s(i,j)=0;
+        
+    end    
+end
+
+tol=1d-6;
+erro=1;
+l = waitbar(0,'s is calculating...');
+
+while erro > tol
+    
+    waitbar(tol/erro)
+    
+    for n1=1:n
+    
+        d = z_to_v(:,n1);
+   
+        s(d(1), d(2))= -Inf;
+    
+    end
+
+    f=zeros(n,1);
+   
+    for n1=1:n
+    
+        d = z_to_v(:,n1);
+    
+        if s(d(1)-1,d(2)) < 10000 && s(d(1)-1,d(2)) > -10000
+    
+            f(n1,1)=-s(d(1)-1,d(2));
+        
+        end
+    
+        if s(d(1)+1,d(2)) < 10000 && s(d(1)+1,d(2)) > -10000
+    
+            f(n1,1)=f(n1,1)-s(d(1)+1,d(2));
+        
+        end
+    
+        if s(d(1),d(2)-1) < 10000 && s(d(1),d(2)-1) > -10000
+    
+            f(n1,1)=f(n1,1)-s(d(1),d(2)-1);
+        
+        end
+    
+        if s(d(1),d(2)+1) < 10000 && s(d(1),d(2)+1) > -10000
+
+            f(n1,1)=f(n1,1)-s(d(1),d(2)+1);
+        
+        end
+    
+    end
+   
+    z=N\f;
+
+    for n1=1:n
+    
+        d = z_to_v(:,n1);
+   
+        s(d(1), d(2))=z(n1,1);
+    
+    end
+
+    skp1=s;
+   
+    %Boundary conditions
+
+    %Upper left boundary of the model
+    
+    for j = 2:nx1-1
+        
+        skp1(ny-nu-nw,j) = 0.25*(s(ny-nu-nw,j+1)+2*s(ny-7-nw,j)+s(ny-nu-nw,j-1));
+        
+    end
+    
+    %Upper right boundary of the model
+    
+    for j = nx1+nk+2:nx-1
+        
+        skp1(ny-nu-nw,j) = 0.25*(s(ny-nu-nw,j+1)+2*s(ny-nu-1-nw,j)+s(ny-nu-nw,j-1));
+        
+    end
+    
+    %Inner left side of the model
+    
+    for j = nx1+2:nx1+(nk-1)/2
+        
+        skp1(ny-nu,j) = 0.25*(s(ny-nu,j+1)+2*s(ny-nu-1,j)+s(ny-nu,j-1));
+        
+    end
+    
+    %Inner right side of the model
+    
+    for j = nx1+(nk-1)/2+2:nx1+nk-1
+        
+        skp1(ny-nu,j) = 0.25*(s(ny-nu,j+1)+2*s(ny-nu-1,j)+s(ny-nu,j-1));
+        
+    end
+    
+    erro = sqrt(sum(sum((skp1-s).^2)));
+    
+    s = skp1;
+    
+end
+
+close(l)
 
 s
