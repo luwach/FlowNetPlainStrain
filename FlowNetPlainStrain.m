@@ -625,7 +625,7 @@ while erro > tol
     
     for j = 2:nx1-1
         
-        skp1(ny-nu-nw,j) = 0.25*(s(ny-nu-nw,j+1)+2*s(ny-7-nw,j)+s(ny-nu-nw,j-1));
+        skp1(ny-nu-nw,j) = 0.25*(s(ny-nu-nw,j+1)+2*s(ny-nu-1-nw,j)+s(ny-nu-nw,j-1));
         
     end
     
@@ -661,4 +661,60 @@ end
 
 close(l)
 
+%Left nodes
+
+for i = ny-nw-nu+1:ny
+    for j = 1:nx1
+        
+        s(i,j)=NaN;
+        
+    end    
+end
+
+%Center nodes
+
+for i = ny-nw-nu+1:ny
+    for j = nx1+nk+1:nx
+        
+        s(i,j)=NaN;
+        
+    end    
+end
+
+%Right nodes
+
+for i = ny-nu+1:ny
+    for j = nx1+1:nx1+nk
+        
+        s(i,j)=NaN;
+        
+    end    
+end
+
 s
+
+%PLOT
+
+%FOR d=0.5
+%[X,Y] = meshgrid(0:0.5:Lx,0:0.5:Ly+0.5+w+5);
+
+%FOR d=1.0
+%[X,Y] = meshgrid(0:1:Lx,0:1:Ly+1+w+5);
+
+[X,Y] = meshgrid(0:1:Lx,0:1:Ly+1+w+5);
+[C,h]=contour(X,Y,h,'LevelStep',0.5,'color', 'b');
+clabel(C,h,'manual','Margin',0.5);
+hold on
+
+[C,s]=contour(X,Y,s,'LevelStep',0.5,'color', 'r');
+clabel(C,s,'manual','Margin',0.5);
+
+x=[(Lx-D-2)/2 (Lx-D-2)/2 (Lx-D-2)/2+2+D (Lx-D-2)/2+2+D (Lx-D-2)/2+1+D (Lx-D-2)/2+1+D (Lx-D-2)/2+1 (Lx-D-2)/2+1];
+y=[Ly+w-H Ly+w+1 Ly+w+1 Ly+w-H Ly+w-H Ly+w Ly+w Ly+w-H];
+fill(x,y,'k')
+
+%linie w centymetrach modelu!
+line([0 (Lx-D-2)/2], [Ly Ly], 'color', 'k');
+line([(Lx-D-2)/2+D+2 Lx], [Ly Ly], 'color', 'k');
+
+hold off
