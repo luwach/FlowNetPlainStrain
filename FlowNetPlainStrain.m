@@ -698,10 +698,28 @@ s
 %FOR d=0.5
 %[X,Y] = meshgrid(0:0.5:Lx,0:0.5:Ly+0.5+w+5);
 
+%CAISSON
+%x=[(Lx-D-1)/2 (Lx-D-1)/2 (Lx-D-1)/2+1+D (Lx-D-1)/2+1+D (Lx-D-1)/2+0.5+D (Lx-D-1)/2+0.5+D (Lx-D-1)/2+0.5 (Lx-D-1)/2+0.5];
+%y=[Ly+w-H Ly+w+0.5 Ly+w+0.5 Ly+w-H Ly+w-H Ly+w Ly+w Ly+w-H];
+%fill(x,y,'k')
+
+%LINES
+%line([0 (Lx-D-1)/2], [Ly Ly], 'color', 'k');
+%line([(Lx-D-1)/2+D+0.5 Lx], [Ly Ly], 'color', 'k');
+
 %FOR d=1.0
 %[X,Y] = meshgrid(0:1:Lx,0:1:Ly+1+w+5);
 
-[X,Y] = meshgrid(0:1:Lx,0:1:Ly+1+w+5);
+%CAISSON
+%x=[(Lx-D-2)/2 (Lx-D-2)/2 (Lx-D-2)/2+2+D (Lx-D-2)/2+2+D (Lx-D-2)/2+1+D (Lx-D-2)/2+1+D (Lx-D-2)/2+1 (Lx-D-2)/2+1];
+%y=[Ly+w-H Ly+w+1 Ly+w+1 Ly+w-H Ly+w-H Ly+w Ly+w Ly+w-H];
+%fill(x,y,'k')
+
+%LINES
+%line([0 (Lx-D-2)/2], [Ly Ly], 'color', 'k');
+%line([(Lx-D-2)/2+D+2 Lx], [Ly Ly], 'color', 'k');
+
+[X,Y] = meshgrid(0:0.5:Lx,0:0.5:Ly+0.5+w+5);
 [C,h]=contour(X,Y,h,'LevelStep',0.5,'color', 'b');
 clabel(C,h,'manual','Margin',0.5);
 hold on
@@ -709,12 +727,12 @@ hold on
 [C,s]=contour(X,Y,s,'LevelStep',0.5,'color', 'r');
 clabel(C,s,'manual','Margin',0.5);
 
-x=[(Lx-D-2)/2 (Lx-D-2)/2 (Lx-D-2)/2+2+D (Lx-D-2)/2+2+D (Lx-D-2)/2+1+D (Lx-D-2)/2+1+D (Lx-D-2)/2+1 (Lx-D-2)/2+1];
-y=[Ly+w-H Ly+w+1 Ly+w+1 Ly+w-H Ly+w-H Ly+w Ly+w Ly+w-H];
+x=[(Lx-D-1)/2 (Lx-D-1)/2 (Lx-D-1)/2+1+D (Lx-D-1)/2+1+D (Lx-D-1)/2+0.5+D (Lx-D-1)/2+0.5+D (Lx-D-1)/2+0.5 (Lx-D-1)/2+0.5];
+y=[Ly+w-H Ly+w+0.5 Ly+w+0.5 Ly+w-H Ly+w-H Ly+w Ly+w Ly+w-H];
 fill(x,y,'k')
 
-%linie w centymetrach modelu!
-line([0 (Lx-D-2)/2], [Ly Ly], 'color', 'k');
-line([(Lx-D-2)/2+D+2 Lx], [Ly Ly], 'color', 'k');
+%lines in cm of the model!
+line([0 (Lx-D-1)/2], [Ly Ly], 'color', 'k');
+line([(Lx-D-1)/2+D+0.5 Lx], [Ly Ly], 'color', 'k');
 
 hold off
